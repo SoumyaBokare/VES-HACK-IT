@@ -1,0 +1,59 @@
+.dashboard {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+  }
+
+  /* Dashboard Layout */
+.dashboard-container {
+  display: flex;
+  flex-direction: row;
+}
+
+/* Sidebar Effect */
+.dashboard-content {
+  flex-grow: 1;
+  transition: margin-left 0.3s ease-in-out;
+  padding: 20px;
+}
+
+.dashboard-content.shift {
+  margin-left: 250px; /* Shifts content when sidebar is open */
+}
+
+/* Sensor Cards Layout */
+.sensor-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+/* Graphs Container */
+.graphs-container {
+  margin-top: 30px;
+  width: 100%;
+  max-width: 800px;
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Burger Menu Button */
+.burger {
+  position: fixed;
+  left: 15px;
+  top: 15px;
+  cursor: pointer;
+  font-size: 24px;
+  background: #2c3e50;
+  color: white;
+  padding: 10px 15px;
+  border-radius: 5px;
+  z-index: 1000;
+  transition: 0.3s;
+}
+
+.burger:hover {
+  background: #34495e;
+}

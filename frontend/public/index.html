@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crop Disease Detection</title>
+    <style>
+      body {
+          font-family: Arial, sans-serif;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          min-height: 100vh;
+          margin: 0;
+          padding: 20px 0;
+          background-color: #f4f7fa;
+      }
+      .container {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          text-align: center;
+          justify-content: center;
+          background-color: white;
+          padding: 20px;
+          border-radius: 8px;
+          box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+          width: 90%;
+          max-width: 650px;
+      }
+      .tab-container {
+          display: flex;
+          width: 100%;
+          border-bottom: 2px solid #ddd;
+          margin-bottom: 25px;
+      }
+      .tab {
+          padding: 12px 20px;
+          cursor: pointer;
+          background-color: #f9f9f9;
+          border: 1px solid #ddd;
+          border-bottom: none;
+          border-radius: 6px 6px 0 0;
+          margin-right: 5px;
+          font-size: 16px;
+          transition: background-color 0.3s ease;
+      }
+      .tab:hover {
+          background-color: #f0f0f0;
+      }
+      .tab.active {
+          background-color: #4CAF50;
+          color: white;
+          font-weight: bold;
+      }
+      .tab-content {
+          display: none;
+          width: 100%;
+      }
+      .tab-content.active {
+          display: block;
+      }
+      .upload-section, .webcam-section {
+          width: 100%;
+          text-align: center;
+          margin-bottom: 20px;
+      }
+      .file-input-wrapper {
+          position: relative;
+          overflow: hidden;
+          display: inline-block;
+          cursor: pointer;
+      }
+      .file-input-wrapper .btn {
+          background-color: #4CAF50;
+          color: white;
+          padding: 12px 25px;
+          border: none;
+          border-radius: 6px;
+          cursor: pointer;
+          font-size: 18px;
+          transition: background-color 0.3s ease;
+      }
+      .file-input-wrapper .btn:hover {
+          background-color: #45a049;
+      }
+      #imageInput {
+          font-size: 100px;
+          position: absolute;
+          left: 0;
+          top: 0;
+          opacity: 0;
+          cursor: pointer;
+      }
+      .result-section {
+          margin-top: 20px;
+          width: 100%;
+          border-top: 1px solid #eee;
+          padding-top: 20px;
+      }
+      .result-header {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin-bottom: 15px;
+      }
+      .result-badge {
+          padding: 5px 15px;
+          border-radius: 25px;
+          color: white;
+          font-size: 14px;
+          font-weight: bold;
+      }
+      .result-badge.healthy {
+          background-color: #4CAF50;
+      }
+      .result-badge.disease {
+          background-color: #f44336;
+      }
+      .result-detail {
+          background-color: #f9f9f9;
+          border-radius: 6px;
+          padding: 20px;
+          margin-bottom: 10px;
+          display: none;
+      }
+      .result-detail h3 {
+          margin-top: 0;
+          color: #333;
+          font-size: 18px;
+      }
+      .result-detail p {
+          margin-bottom: 5px;
+          color: #555;
+          font-size: 15px;
+      }
+      .confidence-bar {
+          width: 100%;
+          background-color: #e0e0e0;
+          border-radius: 6px;
+          margin: 15px 0;
+          height: 20px;
+      }
+      .confidence-fill {
+          height: 100%;
+          border-radius: 6px;
+          background-color: #4CAF50;
+          text-align: right;
+          padding-right: 8px;
+          color: white;
+          font-size: 14px;
+          line-height: 20px;
+      }
+      #previewImage, #webcam {
+          margin-top: 20px;
+          max-width: 100%;
+          max-height: 300px;
+          border-radius: 6px;
+          transition: transform 0.3s ease;
+      }
+      #webcam {
+          display: none;
+      }
+      #previewImage {
+          display: none;
+      }
+      .loading {
+          display: none;
+          text-align: center;
+          margin-top: 20px;
+      }
+      .loading:after {
+          content: '.';
+          animation: dots 1.5s steps(5, end) infinite;
+      }
+      @keyframes dots {
+          0%, 20% { content: '.'; }
+          40% { content: '..'; }
+          60% { content: '...'; }
+          80%, 100% { content: ''; }
+      }
+      .camera-controls {
+          margin-top: 10px;
+          display: flex;
+          justify-content: center;
+          gap: 10px;
+      }
+      canvas {
+          display: none;
+      }
+  </style>
+  
+</head>
+<body>
+
+<div class="container">
+    <h1>Crop Disease Detection by Soumya Bokare & Arun Dange </h1>
+
+    <div class="tab-container">
+        <div id="uploadTab" class="tab active">Upload Image</div>
+        <div id="webcamTab" class="tab">Use Webcam</div>
+    </div>
+
+    <!-- Upload Tab Content -->
+    <div id="uploadContent" class="tab-content active">
+        <div class="upload-section">
+            <h2>Upload a Plant Image</h2>
+            <div class="file-input-wrapper">
+                <button class="btn">Choose Image</button>
+                <input type="file" id="imageInput" accept="image/*">
+            </div>
+        </div>
+        <img id="previewImage" src="" alt="Preview Image">
+    </div>
+
+    <!-- Webcam Tab Content -->
+    <div id="webcamContent" class="tab-content">
+        <div class="webcam-section">
+            <h2>Take a Picture of the Plant</h2>
+            <video id="webcam" autoplay playsinline></video>
+            <canvas id="canvas"></canvas>
+            <div class="camera-controls">
+                <button id="startCamera" class="btn">Start Camera</button>
+                <button id="captureImage" class="btn" disabled>Capture Image</button>
+                <button id="retakeImage" class="btn" style="display: none;">Retake</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Indicator -->
+    <div id="loading" class="loading">Processing image</div>
+
+    <!-- Result Display Section -->
+    <div class="result-section" id="resultSection" style="display: none;">
+        <div class="result-header">
+            <h2 id="predictionTitle">Analysis Results</h2>
+            <div id="resultBadge" class="result-badge">Pending</div>
+        </div>
+        
+        <!-- Confidence Bar -->
+        <div class="confidence-bar">
+            <div id="confidenceFill" class="confidence-fill" style="width: 0%">0%</div>
+        </div>
+        
+        <!-- Disease Information -->
+        <div id="diseaseInfo" class="result-detail">
+            <h3>Disease Information</h3>
+            <p id="diseaseDescription"></p>
+        </div>
+        
+        <!-- Treatment Information -->
+        <div id="treatmentInfo" class="result-detail">
+            <h3>Treatment</h3>
+            <p id="treatmentDescription"></p>
+        </div>
+        
+        <!-- Prevention Information -->
+        <div id="preventionInfo" class="result-detail">
+            <h3>Prevention</h3>
+            <p id="preventionDescription"></p>
+        </div>
+    </div>
+</div>
+
+<script>
+    // DOM Elements
+    const previewImage = document.getElementById('previewImage');
+    const loading = document.getElementById('loading');
+    const webcamElement = document.getElementById('webcam');
+    const canvasElement = document.getElementById('canvas');
+    const uploadTab = document.getElementById('uploadTab');
+    const webcamTab = document.getElementById('webcamTab');
+    const uploadContent = document.getElementById('uploadContent');
+    const webcamContent = document.getElementById('webcamContent');
+    const startCameraButton = document.getElementById('startCamera');
+    const captureImageButton = document.getElementById('captureImage');
+    const retakeImageButton = document.getElementById('retakeImage');
+    const resultSection = document.getElementById('resultSection');
+    const resultBadge = document.getElementById('resultBadge');
+    const confidenceFill = document.getElementById('confidenceFill');
+    const diseaseInfo = document.getElementById('diseaseInfo');
+    const treatmentInfo = document.getElementById('treatmentInfo');
+    const preventionInfo = document.getElementById('preventionInfo');
+    const diseaseDescription = document.getElementById('diseaseDescription');
+    const treatmentDescription = document.getElementById('treatmentDescription');
+    const preventionDescription = document.getElementById('preventionDescription');
+
+    // Tab switching
+    uploadTab.addEventListener('click', () => {
+        uploadTab.classList.add('active');
+        webcamTab.classList.remove('active');
+        uploadContent.classList.add('active');
+        webcamContent.classList.remove('active');
+        stopCamera();
+    });
+
+    webcamTab.addEventListener('click', () => {
+        webcamTab.classList.add('active');
+        uploadTab.classList.remove('active');
+        webcamContent.classList.add('active');
+        uploadContent.classList.remove('active');
+    });
+
+    // Webcam variables
+    let stream = null;
+
+    // Start camera
+    startCameraButton.addEventListener('click', async () => {
+        try {
+            stream = await navigator.mediaDevices.getUserMedia({ 
+                video: { 
+                    facingMode: 'environment',  // Prefer rear camera on mobile
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 }
+                } 
+            });
+            webcamElement.srcObject = stream;
+            webcamElement.style.display = 'block';
+            startCameraButton.style.display = 'none';
+            captureImageButton.disabled = false;
+            retakeImageButton.style.display = 'none';
+            resultSection.style.display = 'none';
+        } catch (error) {
+            console.error("Error accessing camera:", error);
+            alert(`Camera error: ${error.message}. Please make sure your device has a camera and you've granted permission to use it.`);
+        }
+    });
+
+    // Stop camera
+    function stopCamera() {
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+            stream = null;
+            webcamElement.style.display = 'none';
+            startCameraButton.style.display = 'inline-block';
+            captureImageButton.disabled = true;
+        }
+    }
+
+    // Capture image
+    captureImageButton.addEventListener('click', () => {
+        const context = canvasElement.getContext('2d');
+        
+        // Set canvas dimensions to match video
+        canvasElement.width = webcamElement.videoWidth;
+        canvasElement.height = webcamElement.videoHeight;
+        
+        // Draw video frame to canvas
+        context.drawImage(webcamElement, 0, 0, canvasElement.width, canvasElement.height);
+        
+        // Convert canvas to blob and process
+        canvasElement.toBlob(blob => {
+            processImageForPrediction(blob);
+            retakeImageButton.style.display = 'inline-block';
+            captureImageButton.disabled = true;
+        }, 'image/jpeg', 0.95);
+    });
+
+    // Retake image
+    retakeImageButton.addEventListener('click', () => {
+        retakeImageButton.style.display = 'none';
+        captureImageButton.disabled = false;
+        resultSection.style.display = 'none';
+    });
+
+    // Handle file upload
+    document.getElementById('imageInput').addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (file) {
+            // Display image preview
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewImage.src = e.target.result;
+                previewImage.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+            
+            processImageForPrediction(file);
+        }
+    });
+
+    // Process image and get prediction
+    function processImageForPrediction(imageFile) {
+        // Reset previous results
+        resultSection.style.display = 'none';
+        
+        // Show loading indicator
+        loading.style.display = 'block';
+        
+        // Create proper FormData with the file
+        const formData = new FormData();
+        formData.append('image', imageFile);
+        
+        // Send to backend
+        fetch('http://localhost:5004/predict', {
+            method: 'POST',
+            body: formData,
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(err => {
+                    throw new Error(err.error || 'Server error');
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            loading.style.display = 'none';
+            resultSection.style.display = 'block';
+            
+            // Update result badge
+            if (data.prediction === "Healthy") {
+                resultBadge.textContent = "Healthy";
+                resultBadge.className = "result-badge healthy";
+            } else {
+                resultBadge.textContent = data.prediction;
+                resultBadge.className = "result-badge disease";
+            }
+            
+            // Update confidence bar
+            confidenceFill.style.width = `${data.confidence}%`;
+            confidenceFill.textContent = `${data.confidence}%`;
+            
+            // Update disease information
+            diseaseDescription.textContent = data.description || "No information available";
+            treatmentDescription.textContent = data.treatment || "No information available";
+            preventionDescription.textContent = data.prevention || "No information available";
+            
+            // Show appropriate sections
+            diseaseInfo.style.display = 'block';
+            treatmentInfo.style.display = data.treatment ? 'block' : 'none';
+            preventionInfo.style.display = data.prevention ? 'block' : 'none';
+        })
+        .catch(error => {
+            loading.style.display = 'none';
+            alert(`Error: ${error.message}`);
+            console.error("Error:", error);
+        });
+    }
+</script>
+
+</body>
+</html>
