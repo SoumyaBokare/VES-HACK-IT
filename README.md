@@ -122,10 +122,6 @@ A comprehensive agricultural solution combining crop recommendation, disease det
 4. Push to the branch (`git push origin feature/new-feature`)
 5. Create a Pull Request
 
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
 ## Acknowledgments
 
 - Thanks to the agricultural research community for providing datasets
